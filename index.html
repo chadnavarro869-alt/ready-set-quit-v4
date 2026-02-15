@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ready Set Quit</title>
+
+  <!-- iPhone / Home Screen friendly -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Ready Set Quit" />
+
+  <style>
+    :root{
+      --bg:#f6f7fb;
+      --text:#12121a;
+      --card:#ffffff;
+      --panel:#f1f3f8;
+      --border:#d8dbe6;
+      --accent:#2b6cff;
+      --danger:#e63946;
+      --muted:#6b7280;
+      --btn:#12121a;
+      --btnText:#ffffff;
+      --shadow:0 14px 36px rgba(0,0,0,.12);
+    }
+    [data-theme="dark"]{
+      --bg:#0b0c10;
+      --text:#e8e8e8;
+      --card:#12141a;
+      --panel:#0f1117;
+      --border:#262a35;
+      --accent:#7cf3c7;
+      --danger:#ff6b6b;
+      --muted:#9aa0ad;
+      --btn:#e8e8e8;
+      --btnText:#0b0c10;
+      --shadow:0 14px 36px rgba(0,0,0,.35);
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      padding:16px;
+      font-family:-apple-system,system-ui,Segoe UI,Roboto,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    .app{max-width:560px;margin:0 auto}
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:16px;
+      box-shadow:var(--shadow);
+      margin-bottom:14px;
+    }
+    h1{margin:0 0 4px;font-size:24px}
+    .sub{color:var(--muted);font-size:14px;margin-bottom:8px}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .box{
+      flex:1;
+      min-width:160px;
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:12px;
+    }
+    .label{font-size:12px;color:var(--muted);margin-bottom:6px}
+    .big{font-size:36px;font-weight:800}
+    .pill{
+      display:inline-block;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      font-size:12px;
+      margin:4px 4px 0 0;
+      background:var(--card);
+    }
+    .msg{
+      padding:12px;
+      border-radius:14px;
+      background:linear-gradient(135deg, rgba(124,243,199,.15), rgba(43,108,255,.12));
+      border:1px solid var(--border);
+      font-weight:600;
+    }
+    button{
+      padding:12px 14px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:var(--btn);
+      color:var(--btnText);
+      font-weight:700;
+      cursor:pointer;
+    }
+    button.secondary{
+      background:var(--card);
+      color:var(--text);
+    }
+    button.danger{
+      color:var(--danger);
+    }
+    select,input{
+      padding:10px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      background:var(--card);
+      color:var(--text);
+    }
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:8px;
+    }
+    .themeBtn{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:var(--card);
+      cursor:pointer;
+    }
+    .hr{height:1px;background:var(--border);margin:12px 0}
+  </style>
+</head>
+<body>
+<div class="app" id="app" data-theme="light">
+
+  <div class="topbar">
+    <div>
+      <h1>Ready Set Quit</h1>
+      <div class="sub">Delay loop + streaks + stats + reminders. Rule: “later than last time.”</div>
+    </div>
+    <button class="themeBtn" id="themeBtn">Dark</button>
+  </div>
+
+  <div class="card">
+    <div class="label">Next window opens in</div>
+    <div class="big" id="countdown">--:--</div>
+    <div class="pill">Streak: <b id="streakMin">0</b> min</div>
+    <div class="pill">Best: <b id="bestMin">0</b> min</div>
+    <div class="sub" id="lagNote">Random lag is active.</div>
+  </div>
+
+  <div class="card">
+    <div class="label">Today</div>
+    <div>
+      <span class="pill">Smoked: <b id="smokedToday">0</b></span>
+      <span class="pill">Avoided: <b id="avoidedToday">0</b></span>
+      <span class="pill">Saved: <b id="savedToday">$0.00</b></span>
+      <span class="pill">Win rate: <b id="winRateToday">—</b></span>
+    </div>
+
+    <div class="hr"></div>
+
+    <div class="label">Last 7 days</div>
+    <div>
+      <span class="pill">Smoked: <b id="smoked7">0</b></span>
+      <span class="pill">Avoided: <b id="avoided7">0</b></span>
+      <span class="pill">Saved: <b id="saved7">$0.00</b></span>
+    </div>
+  </div>
+
+  <div class="card msg" id="messageBox">Win the next 5 minutes. Then do it again.</div>
+
+  <div class="card">
+    <div class="row">
+      <button id="startBtn">Start</button>
+      <button class="secondary" id="iSmokedBtn">I smoked</button>
+      <button class="secondary" id="iWaitedBtn">I waited</button>
+      <button class="secondary" id="nudgeBtn">Nudge +5m</button>
+      <button class="secondary danger" id="resetBtn">Reset day</button>
+    </div>
+
+    <div class="hr"></div>
+
+    <div class="row">
+      <label>Base</label>
+      <select id="baseInterval">
+        <option value="30">30 min</option>
+        <option value="60" selected>60 min</option>
+        <option value="90">90 min</option>
+        <option value="120">120 min</option>
+      </select>
+
+      <label>Lag</label>
+      <select id="lagWindow">
+        <option value="3">±3</option>
+        <option value="5" selected>±5</option>
+        <option value="10">±10</option>
+      </select>
+
+      <label>Pack $</label>
+      <input id="packPrice" type="number" value="10" style="width:90px"/>
+
+      <label>Cigs/pack</label>
+      <input id="cigsPerPack" type="number" value="20" style="width:90px"/>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const app=$("app");
+
+  const stateKey="rsq_state_v2";
+  const dayKey=d=> "rsq_"+d.toISOString().slice(0,10);
+
+  const MSG=[
+    "Win the next 5 minutes. Then do it again.",
+    "Cravings peak and fall. Your job is to outlast the peak.",
+    "You’re training delay, not perfection.",
+    "Every minute you wait is real progress.",
+    "You’re not owned by this. Prove it for 5 more minutes."
+  ];
+
+  function load(){
+    const raw=localStorage.getItem(stateKey);
+    if(!raw) return {
+      running:false,
+      nextAt:null,
+      baseMinutes:60,
+      lagMinutes:5,
+      packPrice:10,
+      cigsPerPack:20,
+      streakMinutes:0,
+      bestMinutes:0,
+      smoked:{},
+      avoided:{},
+      saved:{},
+      theme:"light"
+    };
+    try{return JSON.parse(raw);}catch{return null;}
+  }
+
+  function save(s){localStorage.setItem(stateKey,JSON.stringify(s));}
+
+  let s=load(); if(!s) s=load();
+
+  app.dataset.theme=s.theme||"light";
+  $("themeBtn").textContent = app.dataset.theme==="dark"?"Light":"Dark";
+
+  function moneyPerCig(){
+    const p=Number(s.packPrice), c=Number(s.cigsPerPack);
+    if(!isFinite(p)||!isFinite(c)||c<=0) return 0;
+    return p/c;
+  }
+
+  function todayCounts(){
+    const k=dayKey(new Date());
+    return {
+      smoked: s.smoked[k]||0,
+      avoided: s.avoided[k]||0,
+      saved: s.saved[k]||0
+    };
+  }
+
+  function last7(){
+    let smoked=0, avoided=0, saved=0;
+    for(let i=0;i<7;i++){
+      const d=new Date(); d.setDate(d.getDate()-i);
+      const k=dayKey(d);
+      smoked+=s.smoked[k]||0;
+      avoided+=s.avoided[k]||0;
+      saved+=s.saved[k]||0;
+    }
+    return {smoked,avoided,saved};
+  }
+
+  function schedule(){
+    const jitter=(Math.random()*2-1)*s.lagMinutes;
+    const minutes=Math.max(5, s.baseMinutes + jitter);
+    const ms=Math.round(minutes*60000);
+    s.windowMs=ms;
+    s.nextAt=Date.now()+ms;
+    s.running=true;
+    save(s);
+  }
+
+  function fmt(ms){
+    const t=Math.max(0,Math.floor(ms/1000));
+    const m=Math.floor(t/60), sec=t%60;
+    return String(m).padStart(2,"0")+":"+String(sec).padStart(2,"0");
+  }
+
+  function render(){
+    const t=todayCounts();
+    $("smokedToday").textContent=t.smoked;
+    $("avoidedToday").textContent=t.avoided;
+    $("savedToday").textContent="$"+(t.saved||0).toFixed(2);
+    const total=t.smoked+t.avoided;
+    $("winRateToday").textContent= total? Math.round(100*t.avoided/total)+"%":"—";
+
+    const l7=last7();
+    $("smoked7").textContent=l7.smoked;
+    $("avoided7").textContent=l7.avoided;
+    $("saved7").textContent="$"+(l7.saved||0).toFixed(2);
+
+    $("streakMin").textContent = s.streakMinutes||0;
+    $("bestMin").textContent = s.bestMinutes||0;
+
+    if(!s.running||!s.nextAt){
+      $("countdown").textContent="--:--";
+      return;
+    }
+    const rem=s.nextAt-Date.now();
+    $("countdown").textContent= fmt(rem);
+  }
+
+  $("startBtn").onclick=()=>{schedule();};
+
+  $("iSmokedBtn").onclick=()=>{
+    const k=dayKey(new Date());
+    s.smoked[k]=(s.smoked[k]||0)+1;
+    s.streakMinutes=0; // streak breaks
+    save(s);
+    schedule();
+  };
+
+  $("iWaitedBtn").onclick=()=>{
+    const k=dayKey(new Date());
+    s.avoided[k]=(s.avoided[k]||0)+1;
+    const addMin = Math.round((s.windowMs||0)/60000) || s.baseMinutes;
+    s.streakMinutes = (s.streakMinutes||0) + addMin;
+    if(s.streakMinutes > (s.bestMinutes||0)) s.bestMinutes = s.streakMinutes;
+    s.saved[k]=(s.saved[k]||0)+moneyPerCig();
+    $("messageBox").textContent = MSG[Math.floor(Math.random()*MSG.length)];
+    save(s);
+    schedule();
+  };
+
+  $("nudgeBtn").onclick=()=>{
+    if(s.nextAt){
+      s.nextAt += 5*60000;
+      save(s);
+    }
+  };
+
+  $("resetBtn").onclick=()=>{
+    const k=dayKey(new Date());
+    s.smoked[k]=0; s.avoided[k]=0; s.saved[k]=0;
+    save(s);
+  };
+
+  $("baseInterval").onchange=e=>{s.baseMinutes=Number(e.target.value); save(s);};
+  $("lagWindow").onchange=e=>{s.lagMinutes=Number(e.target.value); save(s);};
+  $("packPrice").onchange=e=>{s.packPrice=Number(e.target.value); save(s);};
+  $("cigsPerPack").onchange=e=>{s.cigsPerPack=Number(e.target.value); save(s);};
+
+  $("themeBtn").onclick=()=>{
+    app.dataset.theme = app.dataset.theme==="dark"?"light":"dark";
+    s.theme=app.dataset.theme;
+    $("themeBtn").textContent = app.dataset.theme==="dark"?"Light":"Dark";
+    save(s);
+  };
+
+  render();
+  setInterval(render,500);
+})();
+</script>
+</body>
+</html>
